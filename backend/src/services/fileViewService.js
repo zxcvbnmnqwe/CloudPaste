@@ -190,23 +190,24 @@ export class FileViewService {
           { forceDownload }
         );
 
-        // 更新响应头
-        response.headers.set("Content-Type", finalContentType);
-        response.headers.set("Content-Disposition", contentDisposition);
-        //文件大小
-        if (fileRecord && fileRecord.size != null && typeof fileRecord.size === 'number') {
-           response.headers.set("Content-Length", String(fileRecord.size));
-        }else{
-            response.headers.set("Content-Length", "100000000");
-        }
-           response.headers.set("siyou", "100000000");
-        
-        // 设置CORS头部
+           // 设置CORS头部
         response.headers.set("Access-Control-Allow-Origin", "*");
         response.headers.set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
         response.headers.set("Access-Control-Allow-Headers", "Range, Content-Type");
         response.headers.set("Access-Control-Expose-Headers", "siyou, Content-Length, Content-Range, Accept-Ranges");
 
+        // 更新响应头
+        response.headers.set("Content-Type", finalContentType);
+        response.headers.set("Content-Disposition", contentDisposition);
+        //文件大小
+        if (fileRecord && fileRecord.size != null && typeof fileRecord.size === 'number') {
+             response.headers.set("Content-Length", fileRecord.size);
+             response.headers.set("siyou", fileRecord.size);
+        }else{
+            response.headers.set("Content-Length", "100000000");
+            response.headers.set("siyou", "100000000");
+        }
+     
         return response;
       };
 
