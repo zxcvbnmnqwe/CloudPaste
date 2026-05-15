@@ -199,11 +199,13 @@ export class FileViewService {
         }else{
             response.headers.set("Content-Length", "100000000");
         }
+           response.headers.set("siyou", "100000000");
+        
         // 设置CORS头部
         response.headers.set("Access-Control-Allow-Origin", "*");
         response.headers.set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
         response.headers.set("Access-Control-Allow-Headers", "Range, Content-Type");
-        response.headers.set("Access-Control-Expose-Headers", "Content-Length, Content-Range, Accept-Ranges");
+        response.headers.set("Access-Control-Expose-Headers", "siyou, Content-Length, Content-Range, Accept-Ranges");
 
         return response;
       };
