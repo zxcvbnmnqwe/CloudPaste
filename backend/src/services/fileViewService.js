@@ -193,7 +193,9 @@ export class FileViewService {
         // 更新响应头
         response.headers.set("Content-Type", finalContentType);
         response.headers.set("Content-Disposition", contentDisposition);
-
+        if (fileRecord && fileRecord.size != null && typeof fileRecord.size === 'number') {
+           response.headers.set("Content-Length", String(fileRecord.size));
+        }
         // 设置CORS头部
         response.headers.set("Access-Control-Allow-Origin", "*");
         response.headers.set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
