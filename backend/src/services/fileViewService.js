@@ -193,15 +193,33 @@ export class FileViewService {
 
   // 使用 ObjectStore 读取完整文件
 const objectStore = new ObjectStore(this.db, this.encryptionSecret, this.repositoryFactory);
-const fileStream = await objectStore.downloadByStoragePath(
+const fileDescriptor = await objectStore.downloadByStoragePath(
   fileRecord.storage_config_id,
   fileRecord.storage_path,
   { request }
 );
+// 获取实际的流
+const stream = fileDescriptor.stream;
 
-// 需要转换成 ArrayBuffer 才能设置 Content-Length
-const arrayBuffer = await fileStream.arrayBuffer();  // ⚠️ 如果文件太大会 OOM
+// 如果要转成 ArrayBuffer（仅适用于小文件）
+const reader = stream.getReader();
+const chunks = [];
+let totalLength = 0;
 
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+  chunks.push(value);
+  totalLength += value.length;
+}
+
+// 合并所有块
+const arrayBuffer = new Uint8Array(totalLength);
+let offset = 0;
+for (const chunk of chunks) {
+  arrayBuffer.set(chunk, offset);
+  offset += chunk.length;
+}
   // 返回非流式响应
   const response = new Response(arrayBuffer);
     
