@@ -166,31 +166,41 @@ export class FileViewService {
         }
 
         // 使用 StorageStreaming 层统一处理内容访问
-        const streaming = new StorageStreaming({
-          mountManager: null, // 存储路径模式不需要 mountManager
-          storageFactory: StorageFactory,
-          encryptionSecret: this.encryptionSecret,
-        });
+        // const streaming = new StorageStreaming({
+        //   mountManager: null, // 存储路径模式不需要 mountManager
+        //   storageFactory: StorageFactory,
+        //   encryptionSecret: this.encryptionSecret,
+        // });
 
-        const response = await streaming.createResponse({
-          path: fileRecord.storage_path,
-          channel: STREAMING_CHANNELS.SHARE,
-          storageConfigId: fileRecord.storage_config_id,
-          rangeHeader,
-          request,
-          db: this.db,
-          disableRange: true, // 关闭 Range → 允许 CDN 缓存
-          repositoryFactory: this.repositoryFactory,
-          ...(owner ? owner : null),
-        });
+        // const response = await streaming.createResponse({
+        //   path: fileRecord.storage_path,
+        //   channel: STREAMING_CHANNELS.SHARE,
+        //   storageConfigId: fileRecord.storage_config_id,
+        //   rangeHeader,
+        //   request,
+        //   db: this.db,
+        //   disableRange: true, // 关闭 Range → 允许 CDN 缓存
+        //   repositoryFactory: this.repositoryFactory,
+        //   ...(owner ? owner : null),
+        // });
 
-        // 基于文件记录重新计算 Content-Type / Content-Disposition，保持分享层一致性
+            // 基于文件记录重新计算 Content-Type / Content-Disposition，保持分享层一致性
         const { contentType: finalContentType, contentDisposition } = getContentTypeAndDisposition(
           fileRecord.filename,
           fileRecord.mimetype,
           { forceDownload }
         );
 
+  // 使用 ObjectStore 读取完整文件
+  const objectStore = new ObjectStore(this.db, this.encryptionSecret, this.repositoryFactory);
+  const file = await objectStore.getObject(fileRecord.storage_config_id, fileRecord.storage_path);
+  
+  // 转成 ArrayBuffer
+  const arrayBuffer = await file.arrayBuffer();
+
+  // 返回非流式响应
+  const response = new Response(arrayBuffer);
+    
            // 设置CORS头部
         response.headers.set("Access-Control-Allow-Origin", "*");
         response.headers.set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
@@ -202,10 +212,10 @@ export class FileViewService {
         response.headers.set("Content-Disposition", contentDisposition);
         //文件大小
         if (fileRecord && fileRecord.size != null && typeof fileRecord.size === 'number') {
-             // response.headers.set("Content-Length", fileRecord.size);
+             response.headers.set("Content-Length", fileRecord.size);
              response.headers.set("siyou", fileRecord.size);
         }else{
-            // response.headers.set("Content-Length", "100000000");
+            response.headers.set("Content-Length", "100000000");
             response.headers.set("siyou", "100000000");
         }
          // ↓↓↓↓↓ 【关键：强制开启 Cloudflare 缓存】↓↓↓↓↓
