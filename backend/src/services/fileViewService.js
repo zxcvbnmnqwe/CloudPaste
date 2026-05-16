@@ -179,6 +179,7 @@ export class FileViewService {
           rangeHeader,
           request,
           db: this.db,
+          disableRange: true, // 关闭 Range → 允许 CDN 缓存
           repositoryFactory: this.repositoryFactory,
           ...(owner ? owner : null),
         });
