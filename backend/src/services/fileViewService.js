@@ -171,7 +171,6 @@ export class FileViewService {
         //   storageFactory: StorageFactory,
         //   encryptionSecret: this.encryptionSecret,
         // });
-
         // const response = await streaming.createResponse({
         //   path: fileRecord.storage_path,
         //   channel: STREAMING_CHANNELS.SHARE,
@@ -183,13 +182,6 @@ export class FileViewService {
         //   repositoryFactory: this.repositoryFactory,
         //   ...(owner ? owner : null),
         // });
-
-            // 基于文件记录重新计算 Content-Type / Content-Disposition，保持分享层一致性
-        const { contentType: finalContentType, contentDisposition } = getContentTypeAndDisposition(
-          fileRecord.filename,
-          fileRecord.mimetype,
-          { forceDownload }
-        );
 
   // 使用 ObjectStore 读取完整文件
 const objectStore = new ObjectStore(this.db, this.encryptionSecret, this.repositoryFactory);
@@ -225,13 +217,22 @@ for (const chunk of chunks) {
 }
   // 返回非流式响应
   const response = new Response(arrayBuffer);
-    
+
+        
+            // 基于文件记录重新计算 Content-Type / Content-Disposition，保持分享层一致性
+        const { contentType: finalContentType, contentDisposition } = getContentTypeAndDisposition(
+          fileRecord.filename,
+          fileRecord.mimetype,
+          { forceDownload }
+        );
+
            // 设置CORS头部
         response.headers.set("Access-Control-Allow-Origin", "*");
         response.headers.set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
         response.headers.set("Access-Control-Allow-Headers", "Range, Content-Type");
         response.headers.set("Access-Control-Expose-Headers", "siyou, Content-Length, Content-Range, Accept-Ranges");
-
+         // 禁用压缩
+        response.headers.set('Content-Encoding', 'identity'); 
         // 更新响应头
         response.headers.set("Content-Type", finalContentType);
         response.headers.set("Content-Disposition", contentDisposition);
