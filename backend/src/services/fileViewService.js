@@ -199,8 +199,11 @@ const fileDescriptor = await objectStore.downloadByStoragePath(
   { request }
 );
 // 获取实际的流
-const stream = fileDescriptor.stream;
-
+const streamResult = await fileDescriptor.getStream();
+if (!streamResult || !streamResult.stream) {
+  throw new Error('文件流为空');
+}
+const { stream } = streamResult;
 // 如果要转成 ArrayBuffer（仅适用于小文件）
 const reader = stream.getReader();
 const chunks = [];
