@@ -201,13 +201,17 @@ export class FileViewService {
         response.headers.set("Content-Disposition", contentDisposition);
         //文件大小
         if (fileRecord && fileRecord.size != null && typeof fileRecord.size === 'number') {
-             response.headers.set("Content-Length", fileRecord.size);
+             // response.headers.set("Content-Length", fileRecord.size);
              response.headers.set("siyou", fileRecord.size);
         }else{
-            response.headers.set("Content-Length", "100000000");
+            // response.headers.set("Content-Length", "100000000");
             response.headers.set("siyou", "100000000");
         }
-     
+         // ↓↓↓↓↓ 【关键：强制开启 Cloudflare 缓存】↓↓↓↓↓
+          response.headers.set("Cache-Control", "public, max-age=604800, s-maxage=604800");
+         // 这一行 = 让 CF 缓存 7 天
+          response.cfCacheTtl = 604800;
+        
         return response;
       };
 
