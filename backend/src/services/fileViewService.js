@@ -192,11 +192,15 @@ export class FileViewService {
         );
 
   // 使用 ObjectStore 读取完整文件
-  const objectStore = new ObjectStore(this.db, this.encryptionSecret, this.repositoryFactory);
-  const file = await objectStore.getObject(fileRecord.storage_config_id, fileRecord.storage_path);
-  
-  // 转成 ArrayBuffer
-  const arrayBuffer = await file.arrayBuffer();
+const objectStore = new ObjectStore(this.db, this.encryptionSecret, this.repositoryFactory);
+const fileStream = await objectStore.downloadByStoragePath(
+  fileRecord.storage_config_id,
+  fileRecord.storage_path,
+  { request }
+);
+
+// 需要转换成 ArrayBuffer 才能设置 Content-Length
+const arrayBuffer = await fileStream.arrayBuffer();  // ⚠️ 如果文件太大会 OOM
 
   // 返回非流式响应
   const response = new Response(arrayBuffer);
