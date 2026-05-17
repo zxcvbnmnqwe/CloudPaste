@@ -218,6 +218,9 @@ for (const chunk of chunks) {
   // 返回非流式响应
   const response = new Response(arrayBuffer);
 
+        response.headers.delete('Vary');  // 删除 Vary 头
+        response.headers.set('ETag', fileRecord.etag);
+        response.headers.set('Last-Modified', fileRecord.updated_at);
         
             // 基于文件记录重新计算 Content-Type / Content-Disposition，保持分享层一致性
         const { contentType: finalContentType, contentDisposition } = getContentTypeAndDisposition(
